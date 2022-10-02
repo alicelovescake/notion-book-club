@@ -1,7 +1,11 @@
 import fs from "fs";
-import { NewBookEntriesType, RatingMapType } from "../utils";
+import { NewBookEntries, RatingMap } from "../utils";
 
-// parse data from new line separated entries to an array of data with names lower cased and whitespace removed
+/**
+ * Validate and transform data
+ * @param data string from csv file
+ * @returns An 2d array with each entry as an array of data that include rating and name of book & user in lower case and whitespace removed
+ */
 function validateData(data: string) {
   return data
     .split("\n")
@@ -10,10 +14,13 @@ function validateData(data: string) {
     );
 }
 
-// read ratings.csv file from src/data folder
+/**
+ * read ratings.csv file from src/data folder
+ * @returns result from validate data: 2D array of entries of new books we extracted from csv file
+ */
 function readData() {
   try {
-    const ratings = fs.readFileSync("./src/data/test.csv", "utf8");
+    const ratings = fs.readFileSync("./src/data/ratings.csv", "utf8");
     return validateData(ratings);
   } catch (err) {
     console.log("Sorry, your book ratings file was not found!");
@@ -22,11 +29,15 @@ function readData() {
   return [];
 }
 
-// creates a hashmap: {book: {user: rating }}. Newer entries with same book and author will override previous rating
-function getRatingsMap(data: string[][]) {
-  const ratingsMap: RatingMapType = {};
+/**
+ * Creates a hashmap to store all user ratings for a book. Newer entries with same book and author will override previous rating
+ * @param ratings 2D array of entries of new books extracted from csv
+ * @returns a hashmap: {book: {user: rating }}
+ */
+function getRatingsMap(ratings: string[][]) {
+  const ratingsMap: RatingMap = {};
 
-  data.forEach(([book, user, rating]) => {
+  ratings.forEach(([book, user, rating]) => {
     if (+rating < 0 || +rating > 5) {
       throw new Error("Ratings must be between 0 and 5 stars!");
     }
@@ -37,9 +48,13 @@ function getRatingsMap(data: string[][]) {
   return ratingsMap;
 }
 
-// creates a hashmap: {book: [avgRating, favoriteCount]}.
+/**
+ * // creates a hashmap to store new book entries.
+ * @param ratings 2D array of entries of new books extracted from csv
+ * @returns a hashmap: {book: {rating, favorites}}
+ */
 function getNewBookEntries(ratings: string[][]) {
-  const newBookEntries: NewBookEntriesType = {};
+  const newBookEntries: NewBookEntries = {};
   const ratingsMap = getRatingsMap(ratings);
 
   // Time complexity is O(#books * #users). This is necessary because we want to eliminate

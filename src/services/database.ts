@@ -4,11 +4,11 @@ import {
   PartialPageObjectResponse,
 } from "@notionhq/client/build/src/api-endpoints";
 import {
-  DatabaseTitlePropertyType,
-  DatabaseNumberPropertyType,
+  DatabaseTitleProperty,
+  DatabaseNumberProperty,
   getErrorMessage,
-  NewBookEntriesType,
-  ExistingBookEntriesType,
+  NewBookEntries,
+  ExistingBookEntries,
   UpdatedBookEntry,
   NewBookEntry,
 } from "../utils";
@@ -19,11 +19,15 @@ if (!process.env.NOTION_DATABASE_ID) {
 }
 const DATABASE_ID = process.env.NOTION_DATABASE_ID;
 
-// parse ratings from notion into a map of {book: {rating, favorites, pageId}}
+/**
+ * parse ratings from notion into a hashmap of existing book entries
+ * @param data page response from API call database.query
+ * @returns a hashmap of {book: {rating, favorites, pageId}}
+ */
 function getExistingBookEntries(
   data: (PageObjectResponse | PartialPageObjectResponse)[]
 ) {
-  const existingBookEntries: ExistingBookEntriesType = {};
+  const existingBookEntries: ExistingBookEntries = {};
 
   for (const page of data) {
     if (!isFullPage(page)) {
@@ -31,10 +35,10 @@ function getExistingBookEntries(
     }
 
     const favorites =
-      (page.properties.Favorites as DatabaseNumberPropertyType).number ?? 0;
+      (page.properties.Favorites as DatabaseNumberProperty).number ?? 0;
     const rating =
-      (page.properties.Rating as DatabaseNumberPropertyType).number ?? 0;
-    const book = (page.properties["Book Title"] as DatabaseTitlePropertyType)
+      (page.properties.Rating as DatabaseNumberProperty).number ?? 0;
+    const book = (page.properties["Book Title"] as DatabaseTitleProperty)
       .title[0]?.plain_text;
 
     if (!book) {
@@ -47,7 +51,11 @@ function getExistingBookEntries(
   return existingBookEntries;
 }
 
-// helper function to get propertie parameter in update/create API calls
+/**
+ * helper function to get property parameter in update/create API calls
+ * @param param0
+ * @returns property object in correct API format
+ */
 function getProperties({ book, rating, favorites }: NewBookEntry) {
   return {
     "Book Title": {
@@ -68,7 +76,10 @@ function getProperties({ book, rating, favorites }: NewBookEntry) {
   };
 }
 
-// add new entry to workspace
+/**
+ * API call to create a new page/ row in the book club database
+ * @param param0 properties to new book
+ */
 async function addBook({ book, rating, favorites }: NewBookEntry) {
   try {
     await notion.pages.create({
@@ -84,27 +95,38 @@ async function addBook({ book, rating, favorites }: NewBookEntry) {
   }
 }
 
-// update entry in workspace
+/**
+ * API call to update an existing page/row in the book club database
+ * @param param0 properties of updated book + pageId
+ */
 async function updateBook({
   book,
   rating,
   favorites,
   pageId,
 }: UpdatedBookEntry) {
-  await notion.pages.update({
-    page_id: pageId,
-    properties: getProperties({
-      book,
-      rating,
-      favorites,
-    }),
-  });
+  try {
+    await notion.pages.update({
+      page_id: pageId,
+      properties: getProperties({
+        book,
+        rating,
+        favorites,
+      }),
+    });
+  } catch (error) {
+    getErrorMessage(error);
+  }
 }
 
-// updates database by checking which entries already exist and need to be updated, and which entries need to be added
+/**
+ * Updates database by checking which book entries already exist to update, and which entries need to be added
+ * @param newRatings new ratings from csv file in hashmap
+ * @param existingRatings existing ratings from notion in hashmap
+ */
 export async function updateDatabase(
-  newRatings: NewBookEntriesType,
-  existingRatings: ExistingBookEntriesType
+  newRatings: NewBookEntries,
+  existingRatings: ExistingBookEntries
 ) {
   const booksToUpdate: UpdatedBookEntry[] = [];
   const booksToAdd: NewBookEntry[] = [];
@@ -127,7 +149,6 @@ export async function updateDatabase(
   ]);
 }
 
-// fetch all pages from notion database
 export async function getExistingRatings() {
   try {
     const response = await notion.databases.query({

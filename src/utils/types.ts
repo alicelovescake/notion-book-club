@@ -1,24 +1,24 @@
-export type RatingMapType = {
+export type RatingMap = {
   [book: string]: { [user: string]: number };
 };
 
 type Book = { rating: number; favorites: number };
 
-export type NewBookEntriesType = {
+export type NewBookEntries = {
   [book: string]: Book;
 };
 
-export type ExistingBookEntriesType = {
+export type ExistingBookEntries = {
   [books: string]: Book & { pageId: string };
 };
 
-export type DatabaseNumberPropertyType = {
+export type DatabaseNumberProperty = {
   id: string;
   type: string;
   number: number | null;
 };
 
-type DatabaseTitleType = {
+type DatabaseTitle = {
   type: string;
   text: Record<string, unknown>;
   annotations: Record<string, unknown>;
@@ -26,10 +26,10 @@ type DatabaseTitleType = {
   href: string | null;
 };
 
-export type DatabaseTitlePropertyType = {
+export type DatabaseTitleProperty = {
   id: string;
   type: string;
-  title: DatabaseTitleType[];
+  title: DatabaseTitle[];
 };
 
 export type NewBookEntry = {
