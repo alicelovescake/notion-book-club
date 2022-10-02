@@ -6,6 +6,10 @@ Welcome to our Notion bot that populates our favorite tool with a list of books 
 
 ## How Does It Work?
 
+### Demo
+
+![demo3](https://user-images.githubusercontent.com/66543449/193440996-c098c531-faa4-4065-a4c8-289d99368ee7.gif)
+
 ### Folder Structure
 
 ```

@@ -53,7 +53,9 @@ function getExistingBookEntries(
 
 /**
  * helper function to get property parameter in update/create API calls
- * @param param0
+ * @param {Object}  - book is title of new book
+ *                  - rating is average rating
+ *                  - favorites is number of 5 star ratings
  * @returns property object in correct API format
  */
 function getProperties({ book, rating, favorites }: NewBookEntry) {
@@ -78,11 +80,13 @@ function getProperties({ book, rating, favorites }: NewBookEntry) {
 
 /**
  * API call to create a new page/ row in the book club database
- * @param param0 properties to new book
+ * @param {Object}  - book is title of new book
+ *                  - rating is average rating
+ *                  - favorites is number of 5 star ratings
  */
 async function addBook({ book, rating, favorites }: NewBookEntry) {
   try {
-    await notion.pages.create({
+    const response = await notion.pages.create({
       parent: { database_id: DATABASE_ID },
       properties: getProperties({
         book,
@@ -97,7 +101,10 @@ async function addBook({ book, rating, favorites }: NewBookEntry) {
 
 /**
  * API call to update an existing page/row in the book club database
- * @param param0 properties of updated book + pageId
+ * @param {Object}  - book is title of new book
+ *                  - rating is average rating
+ *                  - favorites is number of 5 star ratings
+ *                  - pageId is id of page to be updated
  */
 async function updateBook({
   book,

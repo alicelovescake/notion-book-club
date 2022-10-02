@@ -1,5 +1,5 @@
 import fs from "fs";
-import { NewBookEntries, RatingMap } from "../utils";
+import { getErrorMessage, NewBookEntries, RatingMap } from "../utils";
 
 /**
  * Validate and transform data
@@ -22,8 +22,8 @@ function readData() {
   try {
     const ratings = fs.readFileSync("./src/data/ratings.csv", "utf8");
     return validateData(ratings);
-  } catch (err) {
-    console.log("Sorry, your book ratings file was not found!");
+  } catch (error) {
+    getErrorMessage(error);
   }
 
   return [];
@@ -37,13 +37,14 @@ function readData() {
 function getRatingsMap(ratings: string[][]) {
   const ratingsMap: RatingMap = {};
 
-  ratings.forEach(([book, user, rating]) => {
+  for (const [book, user, rating] of ratings) {
     if (+rating < 0 || +rating > 5) {
       throw new Error("Ratings must be between 0 and 5 stars!");
     }
+    if (!book) continue;
     ratingsMap[book] = ratingsMap[book] || {};
     ratingsMap[book][user] = +rating;
-  });
+  }
 
   return ratingsMap;
 }
